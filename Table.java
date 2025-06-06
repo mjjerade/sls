@@ -1,7 +1,6 @@
-//APPENDIX B
+//APPENDIX C
 import java.io.*;
 import java.util.LinkedList;
-
 public class Table {
   
   LinkedList<String>[] rows;
@@ -16,21 +15,24 @@ public class Table {
   public void display(){
     for (int i = 0; i<8; i++){
       System.out.print("Row #"+i+": ");
+      if (this.rows[i] != null){
         for (int j = 0; j<this.rows[i].size();j++){
-          System.out.print(this.rows[i].get(j));}
+          System.out.print(this.rows[i].get(j));}}
       System.out.println();}}
   
   // replace this Table with other
+  // used for keeping track of all table changes
   public static Table replace(Table other){
     Table rep = new Table(8);
     for (int i = 0 ; i < 8 ; i++){
-      for (int j = 0 ; j < other.rows[i].size() ; j++){
-        rep.rows[i].addLast(other.rows[i].get(j));}}
+      if (other.rows[i].size()>0){
+        for (int j = 0 ; j < other.rows[i].size() ; j++){
+          rep.rows[i].addLast(other.rows[i].get(j));}}}
     return rep;}
   
-  // sort this table by length
   public void sort(int[] p) {
     
+    // sorting by length
     for (int i = 0; i < 7; i++) {
       
       int max_idx = i;
@@ -50,6 +52,12 @@ public class Table {
         this.rows[max_idx].clear();
         for (int k = 0 ; k<temp.size() ; k++){
           this.rows[max_idx].addLast(temp.get(k));}
-      }}}
+      }
+    }
+  }
   
 }
+// copy first row to new table
+// compare first row to those of same length: if found one equal, copy it to new Table
+// if not move to the next available length 
+// stop when length = 0 or made it to row #7

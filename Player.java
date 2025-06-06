@@ -1,4 +1,4 @@
-// APPENDIX A
+// APPENDIX D
 import java.io.InputStream;
 import java.util.Scanner;
 import java.util.LinkedList;
@@ -28,7 +28,8 @@ public class Player {
     else if (chip_color == 1) {return this.red;}
     else if (chip_color == 2) {return this.green;}
     else if (chip_color == 3) {return this.yellow;}
-    return -1;}
+    return -1;
+  }
   
   public int getTotal(){
     return this.blue + this.red + this.green + this.yellow;}
@@ -44,7 +45,8 @@ public class Player {
     else if (this.getPlayer().equals("r")){ return this.blue + this.green + this.yellow;}
     else if (this.getPlayer().equals("g")){ return this.blue + this.red + this.yellow;}
     else if (this.getPlayer().equals("y")){ return this.blue + this.red + this.green;}
-    return -1;}
+    return -1;
+  }
   
   public String getDiscard(){
     String discard = "";
@@ -54,37 +56,51 @@ public class Player {
           for (int j = 0; j< this.getChip(i); j++){
             discard = discard.concat(this.convertStr(i));}}}
     }
-    return discard;}
+    return discard;
+  }
   
   //setters
   public void setColor(String c){
     this.color = c;}
   
   public void setChip (int chip_color, int chip_num){
-    if (chip_color == 0){this.blue = this.blue + chip_num;}
-    else if (chip_color == 1){this.red = this.red + chip_num;}
-    else if (chip_color == 2){this.green = this.green + chip_num;}
-    else if (chip_color == 3){this.yellow = this.yellow + chip_num;}}
+    if (chip_color == 0){this.blue=chip_num;}
+    else if (chip_color == 1){this.red=chip_num;}
+    else if (chip_color == 2){this.green=chip_num;}
+    else if (chip_color == 3){this.yellow=chip_num;}
+  }
   
   public void setScore(int i){
-    this.score = i;}
+    this.score=i;}
   
   public void setBefore(String b){
     this.before = b;}
   
   // convert color to number 
   public int convertInt(String s){
-    if (s.equals("b")){return 0;}
-    else if (s.equals("r")){return 1;}
-    else if (s.equals("g")){return 2;}
-    else {return 3;}}
+    if (s.equals("b")){
+      return 0;}
+    else if (s.equals("r")){
+      return 1;}
+    else if (s.equals("g")){
+      return 2;}
+    else if (s.equals("y")){
+      return 3;}
+    else {
+      return -1;}}
   
   // convert number to color 
   public String convertStr(int i){
-    if (i == 0) {return "b";}
-    else if (i == 1) {return "r";}
-    else if (i == 2) {return "g";}
-    else {return "y";}}
+    if (i == 0) {
+      return "b";}
+    else if (i == 1) {
+      return "r";}
+    else if (i == 2) {
+      return "g";}
+    else if (i == 3) {
+      return "y";}
+    else {
+      return "xxx";}}
   
   // replace this Player with other
   public static Player replace(Player other){
@@ -101,29 +117,99 @@ public class Player {
   // this Player captures row i
   public void capture(String captured_row){
     for (int i = 0; i < captured_row.length(); ++i){
-      this.setChip( this.convertInt(Character.toString(captured_row.charAt(i))), 1);;}}
+      this.setChip( this.convertInt(Character.toString(captured_row.charAt(i))), this.getChip(this.convertInt(Character.toString(captured_row.charAt(i))))+1);
+      System.out.println("A " + Character.toString(captured_row.charAt(i)) + " chip can be discarded.");}
+  }
   
   // discards chip from this Player pile
-  public void discard(String discarded_chip, int num){
-    this.setChip(this.convertInt(discarded_chip) , -num);}
+  public void discard(String discarded_chip, int num){   
+    this.setChip(this.convertInt(discarded_chip) , this.getChip(this.convertInt(discarded_chip))-num);}
   
   // returns true if this Player is eliminated
   public boolean eliminated () {
     return (this.getScore() != 0);}
+  
+  // returns String of all possible players for next turn 
+  public String nextTurn(String played_row){
+    int point = 0;
+    String possibleNextPlayers = "brgy";
+    String refrain = ""; // which players should refrain from giving the move to
+    
+    // if not all players are in played_row
+    for(int i = 0; i < 4 ; i++) { 
+      if (played_row.contains(this.convertStr(i)) == true) {
+        possibleNextPlayers = possibleNextPlayers.replace(this.convertStr(i),"");}}
 
+    // if all players are represented in played_row
+    if (possibleNextPlayers.isEmpty()==true){
+      System.out.println("All chips are represented in the row. So the move goes to the player who's most recent chip is furthest down the pile.");
+      for (int j = played_row.length() - 1 ; j>=0 ; j--){
+        if (refrain.indexOf(played_row.charAt(j)) == -1){
+          refrain = refrain.concat(Character.toString(played_row.charAt(j)));}}
+      possibleNextPlayers = possibleNextPlayers.concat(Character.toString(refrain.charAt(3)));
+    }
+    return possibleNextPlayers;}
+  
   // donate chip_number amount of color chips from Player this to other
-  // eligibility for donation verified in main code
   public void donate(Player other, String color, int chip_number){
-    other.setChip(this.convertInt(color) , chip_number);
-    this.setChip(this.convertInt(color) , -chip_number);}
- 
+    
+    if ((color.equals(this.getPlayer()) == false) && (this.getChip(this.convertInt(color)) - chip_number)>=0){
+      other.setChip(this.convertInt(color) , other.getChip(this.convertInt(color))+chip_number);
+      this.setChip(this.convertInt(color) , this.getChip(this.convertInt(color))- chip_number);}
+    else{      
+      System.out.println("You don't have enough chips to donate.");}
+  }
+  
+  public String elimination(LinkedList<String> played_sub, Player[] players, LinkedList<String> remaining_players, int turn){
+    
+    if ((this.getTotal() == 0) && (this.getScore()==0)){
+      
+      System.out.println(this.getPlayer()+" is eliminated unless another player donates chips.");
+      
+      Scanner scanner = new Scanner(System.in);
+      System.out.println("Would any players like to donate chips? Answer: b, r, y, g, none.");
+      String ansDonatePlayer = scanner.nextLine();
+      
+      if (ansDonatePlayer.compareTo("none")!=0){
+        scanner = new Scanner(System.in);
+        System.out.println("Which chip color would you like to donate?");
+        String ansDonateColor = scanner.nextLine();
+        
+        scanner = new Scanner(System.in);
+        System.out.println("How many chips would you like to donate?");
+        String ansDonateNum = scanner.nextLine();
+        players[this.convertInt(ansDonatePlayer)].donate(this,ansDonateColor,Integer.parseInt(ansDonateNum));
+        return this.getPlayer();}
+      
+      
+      else {
+        this.setScore(++score);
+        System.out.println("Player is eliminated. Their score is " + this.getScore());
+        remaining_players.remove(this);
+        // remove eliminated player from played_sub
+        while (played_sub.contains(this.getPlayer()) == true){
+          played_sub.remove(this.getPlayer());}
+        
+        // searches for next player
+        if (played_sub.size()==0 && score<4){
+          System.out.println(" There isn't enough history to pick the next player. The next player will be chosen randomly and is: ");
+          int random = (int)(Math.random() * 4);
+          while (players[random].getScore() != 0){
+            random = (int)(Math.random() * 4);}
+          System.out.print(players[random].getPlayer());
+          return players[random].getPlayer();
+        }
+      }
+    } // end if statement
+    return "";
+  }
+  
   // returns string of next possible players
-  public String nextPlayer(int captureturn, String played_row, LinkedList<String> remaining_players, 
-                           Player[] players, String chipPlayed, String currentPlayer){
+  public String nextPlayer(int captureturn, String played_row, LinkedList<String> remaining_players, Player[] players, String chipPlayed, String currentPlayer){
     
-    String possibleNextPlayers = "";
+    String possibleNextPlayers = "rbgy" ;
     String refrain = "";
-    
+    // finding possible next players - if no capture takes place
     if (captureturn == 0){
       
       // creating played_row_sub
@@ -134,25 +220,28 @@ public class Player {
       
       // if not all players are in played_row
       for(int i = 0; i < remaining_players.size() ; i++) { 
-        if (played_row_sub.contains(remaining_players.get(i)) == false) {
-          possibleNextPlayers = possibleNextPlayers.concat(remaining_players.get(i));}}
+        if (played_row.contains(remaining_players.get(i)) == true) {
+          possibleNextPlayers = possibleNextPlayers.replace(remaining_players.get(i),"");}}
       
       // if all players are represented in played_row
       if (possibleNextPlayers.isEmpty()==true){
         for (int j = played_row_sub.length() - 1 ; j>=0 ; j--){
-          if (refrain.indexOf(played_row_sub.charAt(j)) == -1){
-            refrain = refrain.concat(Character.toString(played_row_sub.charAt(j)));}}
-        possibleNextPlayers = possibleNextPlayers.concat(Character.toString(refrain.charAt(refrain.length()-1)));}
+          if (refrain.indexOf(played_row.charAt(j)) == -1){
+            refrain = refrain.concat(Character.toString(played_row.charAt(j)));}}
+        possibleNextPlayers = possibleNextPlayers.concat(Character.toString(refrain.charAt(3)));
+      }
       
-    } // end- if (captureturn == 0)
+    } // end if (capture == 0)-statement
     
     else if (captureturn ==1 && players[this.convertInt(chipPlayed)].eliminated() == false){
-      possibleNextPlayers = possibleNextPlayers.concat(chipPlayed);}
+      possibleNextPlayers = chipPlayed;}
     
     else if (captureturn == 1 && players[this.convertInt(chipPlayed)].eliminated() == true) {
-      possibleNextPlayers = possibleNextPlayers.concat(currentPlayer);}
+      possibleNextPlayers = currentPlayer;}
     
-    return possibleNextPlayers;}
+    return possibleNextPlayers;
+  }
+  
   
   // display all information about this player
   public void display(){

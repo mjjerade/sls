@@ -1,3 +1,5 @@
+//APPENDIX B
+
 public class LinkedList<E> implements List<E> {
   
   // definition of class Node
@@ -186,5 +188,4 @@ public class LinkedList<E> implements List<E> {
     else {
       return true;}
   }
-  
 }
